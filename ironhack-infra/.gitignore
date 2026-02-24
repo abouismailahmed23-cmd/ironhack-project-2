@@ -1,0 +1,6 @@
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.pem
+terraform.tfvars
+ansible_vars.yml

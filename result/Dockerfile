@@ -1,24 +1,22 @@
 FROM node:18-slim
 
-# add curl for healthcheck
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl tini && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/local/app
 
-# have nodemon available for local dev use (file watching)
-RUN npm install -g nodemon
-
+# Install dependencies first for caching
 COPY package*.json ./
-
 RUN npm ci && \
     npm cache clean --force && \
     mv /usr/local/app/node_modules /node_modules
 
+# Copy application code
 COPY . .
 
-# Set default environment variables for both the application and PostgreSQL connection
+# Match these to your EKS service discovery names
 ENV PORT=80 \
     PG_HOST=db \
     PG_PORT=5432 \

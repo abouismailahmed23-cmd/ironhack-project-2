@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result
+  namespace: voting-app
+  labels:
+    app: result
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+      - name: result
+        image: ahmedino/result:v1
+        ports:
+        - containerPort: 5001
+        env:
+        - name: REDIS_HOST
+          value: "redis"
+        - name: PG_HOST
+          value: "db"
+        - name: PG_USER
+          value: "postgres"
+        - name: PG_PASSWORD
+          value: "postgres"
+        - name: PG_DATABASE
+          value: "votes"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5001
+          initialDelaySeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5001
+          initialDelaySeconds: 5

@@ -1,28 +1,31 @@
-# Stage 1: Build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 
-# Copy the project file and restore dependencies
-COPY Worker.csproj .
+# Copy project file
+COPY *.csproj ./
+
+# Restore packages
 RUN dotnet restore
 
-# Copy the rest of the source code and build
+# Copy all source files
 COPY . .
+
+# Build and publish
+RUN dotnet build -c Release
 RUN dotnet publish -c Release -o /app/publish
 
-# Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS runtime
+# Runtime image
+FROM mcr.microsoft.com/dotnet/runtime:6.0
+
 WORKDIR /app
 
-# Copy the published output from the build stage
-COPY --from=build /app/publish ./
+# Install required dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl1.1 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables (can be overridden at runtime)
-ENV DB_HOST=db
-ENV DB_USERNAME=postgres
-ENV DB_PASSWORD=postgres
-ENV DB_NAME=postgres
-ENV REDIS_HOST=redis
+# Copy from build stage
+COPY --from=build /app/publish .
 
-# Define the entry point
 ENTRYPOINT ["dotnet", "Worker.dll"]

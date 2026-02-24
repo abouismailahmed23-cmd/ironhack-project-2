@@ -1,0 +1,47 @@
+
+---
+- name: Setup Docker on All
+  hosts: all
+  become: yes
+  tasks:
+    - apt: { name: docker.io, state: present, update_cache: yes }
+
+- name: Deploy Database Tier
+  hosts: db  # <--- Change this from db_group to db
+  become: yes
+  tasks:
+    - name: Run Postgres Container
+      community.docker.docker_container:
+        name: db
+        image: postgres:15-alpine
+        state: started
+        env:
+          POSTGRES_USER: "postgres"
+          POSTGRES_PASSWORD: "password"
+        published_ports: ["5432:5432"]
+
+- name: Deploy Queue Tier
+  hosts: backend # <--- Change this from backend_group to backend
+  become: yes
+  tasks:
+    - name: Run Redis Container
+      community.docker.docker_container:
+        name: redis
+        image: redis:alpine
+        state: started
+        published_ports: ["6379:6379"]
+
+- name: Deploy Frontend Tier
+  hosts: frontend
+  become: yes
+  tasks:
+    - name: Run Vote Container
+      community.docker.docker_container:
+        name: vote
+        image: dockersamples/examplevotingapp_vote
+        state: started
+        recreate: yes  # Forces the update
+        published_ports:
+          - "80:80"
+        env:
+          REDIS_HOST: "10.0.2.69" # <--- Ensure this IP is exactly your Instance B IP
