@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 def get_redis():
     if not hasattr(g, 'redis'):
-        # Ensure timeout so the app doesn't hang if Redis is slow
+        # Ensure we use the 'redis' service name defined in K8s
         g.redis = Redis(host="redis", port=6379, db=0, socket_timeout=5)
     return g.redis
 
@@ -23,7 +23,6 @@ def get_redis():
 def hello():
     voter_id = request.cookies.get('voter_id')
     if not voter_id:
-        # uuid is now imported at the top to prevent Gunicorn boot errors
         voter_id = hex(uuid.getnode())
 
     vote = None
@@ -31,16 +30,16 @@ def hello():
     if request.method == 'POST':
         try:
             redis = get_redis()
-            # .values.get is more robust for NGINX Ingress data
-            vote = request.values.get('vote')
+            # Use .get() to avoid KeyError and handle empty data
+            vote = request.form.get('vote')
             if vote:
                 app.logger.info(f"Received vote for {vote}")
                 data = json.dumps({'voter_id': voter_id, 'vote': vote})
                 redis.rpush('votes', data)
             else:
-                app.logger.warning("POST received but 'vote' data was empty")
+                app.logger.warning("POST received but 'vote' field was empty")
         except Exception as e:
-            app.logger.error(f"Error connecting to Redis: {e}")
+            app.logger.error(f"Redis Error: {e}")
 
     resp = make_response(render_template(
         'index.html',
@@ -50,10 +49,8 @@ def hello():
         vote=vote,
     ))
     
-    # Set cookie to keep track of the user session
     resp.set_cookie('voter_id', voter_id)
     return resp
 
 if __name__ == "__main__":
-    # Standard Flask dev server (only used if running app.py directly)
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
