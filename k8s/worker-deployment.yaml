@@ -11,8 +11,6 @@ spec:
   selector:
     matchLabels:
       app: worker
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -28,7 +26,7 @@ spec:
         - name: REDIS_PORT
           value: "6379"
         - name: PG_HOST
-          value: "postgres"
+          value: "db"        # <-- Corrected to 'db'
         - name: PG_PORT
           value: "5432"
         - name: PG_USER
@@ -37,11 +35,3 @@ spec:
           value: "postgres"
         - name: PG_DATABASE
           value: "votes"
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-      restartPolicy: Always
