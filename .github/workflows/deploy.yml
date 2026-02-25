@@ -28,9 +28,7 @@ jobs:
     
     - name: Build and Push Vote App
       run: |
-        ls -la          # See where we are
         cd vote
-        ls -la          # See if Dockerfile is here
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/vote:${{ github.sha }} .
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/vote:${{ github.sha }}
         docker tag ${{ secrets.DOCKERHUB_USERNAME }}/vote:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/vote:latest
