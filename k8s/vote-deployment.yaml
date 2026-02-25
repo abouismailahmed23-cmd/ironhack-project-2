@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: vote
-        image: ahmedino/vote:v1
+        image: ahmedino/vote:v2
         ports:
         - containerPort: 80
         env:
