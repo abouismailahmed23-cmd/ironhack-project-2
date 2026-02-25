@@ -19,7 +19,7 @@ spec:
       - name: result
         image: ahmedino/result:v1
         ports:
-        - containerPort: 5001
+        - containerPort: 80
         env:
         - name: REDIS_HOST
           value: "redis"
@@ -34,10 +34,10 @@ spec:
         livenessProbe:
           httpGet:
             path: /
-            port: 5001
-          initialDelaySeconds: 5
+            port: 80
+          initialDelaySeconds: 15
         readinessProbe:
           httpGet:
             path: /
-            port: 5001
-          initialDelaySeconds: 5
+            port: 80
+          initialDelaySeconds: 15
