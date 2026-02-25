@@ -4,34 +4,37 @@ import os
 import socket
 import random
 import json
+import uuid
 
-app = Flask(__name__)
-
-# Basic config
 option_a = os.getenv('OPTION_A', "Cats")
 option_b = os.getenv('OPTION_B', "Dogs")
 hostname = socket.gethostname()
 
+app = Flask(__name__)
+
 def get_redis():
     if not hasattr(g, 'redis'):
-        g.redis = Redis(host="redis", port=6379, db=0)
+        g.redis = Redis(host="redis", port=6379, db=0, socket_timeout=5)
     return g.redis
 
 @app.route("/", methods=['POST','GET'])
 def hello():
     voter_id = request.cookies.get('voter_id')
     if not voter_id:
-        import uuid
         voter_id = hex(uuid.getnode())
 
     vote = None
 
     if request.method == 'POST':
-        redis = get_redis()
-        vote = request.form.get('vote')
-        if vote:
-            data = json.dumps({'voter_id': voter_id, 'vote': vote})
-            redis.rpush('votes', data)
+        try:
+            redis = get_redis()
+            vote = request.form.get('vote')
+            if vote:
+                app.logger.info(f"Received vote for {vote}")
+                data = json.dumps({'voter_id': voter_id, 'vote': vote})
+                redis.rpush('votes', data)
+        except Exception as e:
+            app.logger.error(f"Error saving vote: {e}")
 
     resp = make_response(render_template(
         'index.html',
