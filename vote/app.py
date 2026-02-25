@@ -7,12 +7,20 @@ def hello():
     vote = None
 
     if request.method == 'POST':
-        redis = get_redis()
-        # Use .get() to prevent the KeyError crash
-        vote = request.form.get('vote')
-        if vote:
-            data = json.dumps({'voter_id': voter_id, 'vote': vote})
-            redis.rpush('votes', data)
+        try:
+            # Safely get the vote from form data
+            vote = request.form.get('vote')
+            if vote:
+                app.logger.info(f"Received vote for {vote}")
+                # Ensure redis is defined globally or inside this block
+                from redis import Redis
+                r = Redis(host="redis", port=6379, db=0)
+                data = json.dumps({'voter_id': voter_id, 'vote': vote})
+                r.rpush('votes', data)
+            else:
+                app.logger.warning("POST request received but 'vote' key was missing")
+        except Exception as e:
+            app.logger.error(f"Database error: {e}")
 
     resp = make_response(render_template(
         'index.html',
