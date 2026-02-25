@@ -5,6 +5,8 @@ metadata:
   namespace: voting-app
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
 spec:
   ingressClassName: nginx
   rules:
