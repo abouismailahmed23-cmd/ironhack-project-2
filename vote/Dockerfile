@@ -4,5 +4,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 80
-# Gunicorn handles form data much more reliably through Ingress
-CMD ["gunicorn", "app:app", "-b", "0.0.0.0:80", "--workers", "4", "--keep-alive", "0"]
+# Explicitly tell Gunicorn where the app is
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app", "--workers", "4", "--log-level", "debug"]
