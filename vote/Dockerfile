@@ -4,4 +4,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 80
-CMD ["gunicorn", "app:app", "-b", "0.0.0.0:80", "--log-level", "debug", "--workers", "4"]
+# Simplified CMD
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
